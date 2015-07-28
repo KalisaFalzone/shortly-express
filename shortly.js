@@ -3,7 +3,6 @@ var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
 
-
 var db = require('./app/config');
 var Users = require('./app/collections/users');
 var User = require('./app/models/user');
@@ -13,6 +12,7 @@ var Click = require('./app/models/click');
 
 var app = express();
 
+// middleware
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(partials());
@@ -21,27 +21,48 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
+// end middlware
 
-
-app.get('/', 
-function(req, res) {
+// route: index
+app.get('/', util.isUserLoggedIn, function (req, res) {
   res.render('index');
 });
 
-app.get('/create', 
-function(req, res) {
+// route: login
+app.get('/login', function (req, res) {
+  res.render('login');
+});
+app.post('/login', function (req, res) {
+  // store user/pass as plain text locally (bad practice)
+  //if username exsits
+    //if password matches direct to home page and create session id
+    //if password doesn't match redirect to login/or create user
+  //if username doesn't exist redirect to login
+});
+
+// route: signup
+app.get('/signup', function (req, res) {
+  res.render('signup');
+});
+app.post('/signup', function (req, res) {
+  util.signUpUser(req, res);
+  //create the password hash
+  //create the session id (another hash)
+  //redirect to index
+});
+
+// route: create
+app.get('/create', util.isUserLoggedIn, function (req, res) {
   res.render('index');
 });
 
-app.get('/links', 
-function(req, res) {
-  Links.reset().fetch().then(function(links) {
+// route: links
+app.get('/links', util.isUserLoggedIn, function (req, res) {
+  Links.reset().fetch().then(function (links) {
     res.send(200, links.models);
   });
 });
-
-app.post('/links', 
-function(req, res) {
+app.post('/links', util.isUserLoggedIn, function (req, res) {
   var uri = req.body.url;
 
   if (!util.isValidUrl(uri)) {
@@ -74,9 +95,12 @@ function(req, res) {
   });
 });
 
+//create logout option that deletes session
+
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+
 
 
 
