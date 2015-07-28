@@ -3,11 +3,11 @@ var bcrypt = require('bcrypt-nodejs');
 var Promise = require('bluebird');
 
 var User = db.Model.extend({
-  // tableName: 'users',
-initialize: function(params){
-  console.log(params);
-}
-
+  tableName: 'users',
+  hasTimestamps: false,
+  // initialize: function (params) {
+  //   console.log(params);
+  // }, // initialize
 });
 
 module.exports = User;

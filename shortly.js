@@ -3,6 +3,7 @@ var session = require('express-session');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var bcrypt = require('bcrypt-nodejs');
 
 var db = require('./app/config');
 var Users = require('./app/collections/users');
@@ -53,21 +54,57 @@ app.get('/signup', function (req, res) {
   res.render('signup');
 });
 app.post('/signup', function (req, res) {
-  util.signUpUser(req, res);
-});
+  var username = req.body.username;
+  var password = req.body.password;
+
+  console.log('WERE IN SHORTLY.JS', username, password);
+
+  new User({ username: username }).fetch().then(function(found) {
+    // CHECK THE DB/COLLECTION TO SEE IF USER EXISTS
+    if (found) {
+      console.log('username already exists');
+      res.send(200, found.attributes);
+    } else {
+      console.log('username not found');
+      bcrypt.hash(password, null, null,
+        function (err, hashedPassword) {
+          if (err) {
+            console.log('ERRORED:', err);
+            return;
+          }
+
+          var user = new User({
+            username: username,
+            password: hashedPassword,
+            session_id: req.sessionID,
+          });
+
+          user.save().then(function(user) {
+            Users.add(user);
+            res.send(200, user);
+          });
+        }
+      );
+    }
+  });
+}); // app.post
 
 // route: create
 app.get('/create', util.isUserLoggedIn, function (req, res) {
   res.render('index');
-});
+}); // app.get
 
 // route: links
 app.get('/links', util.isUserLoggedIn, function (req, res) {
   Links.reset().fetch().then(function (links) {
     res.send(200, links.models);
   });
-});
+}); // app.get
 app.post('/links', util.isUserLoggedIn, function (req, res) {
+  // REPLACE UP THERE WITH THIS STUFF HERE
+  // REPLACE UP THERE WITH THIS STUFF HERE
+  // REPLACE UP THERE WITH THIS STUFF HERE
+
   var uri = req.body.url;
 
   if (!util.isValidUrl(uri)) {
@@ -100,6 +137,8 @@ app.post('/links', util.isUserLoggedIn, function (req, res) {
   });
 });
 
+
+
 //create logout option that deletes session
 
 /************************************************************/
@@ -118,7 +157,7 @@ app.post('/links', util.isUserLoggedIn, function (req, res) {
 app.get('/*', function(req, res) {
   new Link({ code: req.params[0] }).fetch().then(function(link) {
     if (!link) {
-      console.log('\nWE REDIRECTED!!!');
+      // console.log('\nWE REDIRECTED!!!');
       res.redirect('/');
     } else {
       var click = new Click({
