@@ -1,4 +1,5 @@
 var express = require('express');
+var session = require('express-session');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
@@ -21,6 +22,12 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
+app.use(session({
+  secret: 'lolly lops',
+  resave: false,
+  // saveUninitialized: true,
+  // cookie: { secure: true }
+}));
 // end middlware
 
 // route: index
@@ -35,7 +42,8 @@ app.get('/login', function (req, res) {
 app.post('/login', function (req, res) {
   // store user/pass as plain text locally (bad practice)
   //if username exsits
-    //if password matches direct to home page and create session id
+    //if password matches direct to home page
+    // session.set()
     //if password doesn't match redirect to login/or create user
   //if username doesn't exist redirect to login
 });
@@ -46,9 +54,6 @@ app.get('/signup', function (req, res) {
 });
 app.post('/signup', function (req, res) {
   util.signUpUser(req, res);
-  //create the password hash
-  //create the session id (another hash)
-  //redirect to index
 });
 
 // route: create
@@ -113,6 +118,7 @@ app.post('/links', util.isUserLoggedIn, function (req, res) {
 app.get('/*', function(req, res) {
   new Link({ code: req.params[0] }).fetch().then(function(link) {
     if (!link) {
+      console.log('\nWE REDIRECTED!!!');
       res.redirect('/');
     } else {
       var click = new Click({

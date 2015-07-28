@@ -4,6 +4,9 @@ var Promise = require('bluebird');
 
 var User = db.Model.extend({
   // tableName: 'users',
+initialize: function(params){
+  console.log(params);
+}
 
 });
 
