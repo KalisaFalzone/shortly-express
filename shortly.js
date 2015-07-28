@@ -40,13 +40,33 @@ app.get('/', util.isUserLoggedIn, function (req, res) {
 app.get('/login', function (req, res) {
   res.render('login');
 });
+
 app.post('/login', function (req, res) {
+  console.log('/login POST MADE');
+  var username = req.body.username;
+  var password = req.body.password;
   // store user/pass as plain text locally (bad practice)
   //if username exsits
+  new User({ username: username }).fetch().then(function(user) {
+    // CHECK THE DB/COLLECTION TO SEE IF USER EXISTS
+    if (user) {
     //if password matches direct to home page
-    // session.set()
-    //if password doesn't match redirect to login/or create user
-  //if username doesn't exist redirect to login
+      user.comparePassword(password, function (match) {
+        if (match) {
+          // create a new session
+          util.createSession(req, res);
+
+          res.redirect('/');
+        } else {
+          console.log('Invalid Password');
+          res.redirect('/login');
+        }
+      });
+    } else {
+      console.log("Invalid User");
+      res.redirect('/signup');
+    }
+  });
 });
 
 // route: signup
@@ -63,7 +83,7 @@ app.post('/signup', function (req, res) {
     // CHECK THE DB/COLLECTION TO SEE IF USER EXISTS
     if (found) {
       console.log('username already exists');
-      res.send(200, found.attributes);
+      res.redirect('/login');
     } else {
       console.log('username not found');
       bcrypt.hash(password, null, null,
@@ -85,6 +105,7 @@ app.post('/signup', function (req, res) {
           });
         }
       );
+      res.render('index');
     }
   });
 }); // app.post
@@ -96,16 +117,15 @@ app.get('/create', util.isUserLoggedIn, function (req, res) {
 
 // route: links
 app.get('/links', util.isUserLoggedIn, function (req, res) {
+  console.log('ARE WE GETTING LINKS???');
   Links.reset().fetch().then(function (links) {
     res.send(200, links.models);
   });
 }); // app.get
 app.post('/links', util.isUserLoggedIn, function (req, res) {
-  // REPLACE UP THERE WITH THIS STUFF HERE
-  // REPLACE UP THERE WITH THIS STUFF HERE
-  // REPLACE UP THERE WITH THIS STUFF HERE
-
   var uri = req.body.url;
+
+  console.log('DEBUGGGG', util.isValidUrl(uri));
 
   if (!util.isValidUrl(uri)) {
     console.log('Not a valid url: ', uri);

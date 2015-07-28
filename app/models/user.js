@@ -8,6 +8,11 @@ var User = db.Model.extend({
   // initialize: function (params) {
   //   console.log(params);
   // }, // initialize
+  comparePassword: function(attemptedPassword, callback) {
+    bcrypt.compare(attemptedPassword, this.get('password'), function(err, isMatch) {
+      callback(isMatch);
+    });
+  }, // comparePassword
 });
 
 module.exports = User;
