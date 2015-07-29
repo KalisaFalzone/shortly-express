@@ -26,13 +26,14 @@ app.use(express.static(__dirname + '/public'));
 app.use(session({
   secret: 'lolly lops',
   resave: false,
-  // saveUninitialized: true,
+  saveUninitialized: true,
   // cookie: { secure: true }
 }));
 // end middlware
 
 // route: index
 app.get('/', util.isUserLoggedIn, function (req, res) {
+  // console.log('requesting index')
   res.render('index');
 });
 
@@ -42,29 +43,28 @@ app.get('/login', function (req, res) {
 });
 
 app.post('/login', function (req, res) {
-  console.log('/login POST MADE');
+  // console.log('/login POST MADE');
   var username = req.body.username;
   var password = req.body.password;
   // store user/pass as plain text locally (bad practice)
   //if username exsits
   new User({ username: username }).fetch().then(function(user) {
     // CHECK THE DB/COLLECTION TO SEE IF USER EXISTS
-    if (user) {
+    if (!user) {
+      // console.log("Invalid User");
+      res.redirect('/login');
+    } else {
+      // console.log('user exists');
     //if password matches direct to home page
       user.comparePassword(password, function (match) {
         if (match) {
-          // create a new session
-          util.createSession(req, res);
-
-          res.redirect('/');
+          // console.log('password matches');
+          util.createSession(req, res, user);
         } else {
-          console.log('Invalid Password');
-          res.redirect('/login');
+          // console.log('Invalid Password');
+          res.redirect('/');
         }
       });
-    } else {
-      console.log("Invalid User");
-      res.redirect('/signup');
     }
   });
 });
@@ -77,19 +77,19 @@ app.post('/signup', function (req, res) {
   var username = req.body.username;
   var password = req.body.password;
 
-  console.log('WERE IN SHORTLY.JS', username, password);
+  // console.log('WERE IN SHORTLY.JS', username, password);
 
   new User({ username: username }).fetch().then(function(found) {
     // CHECK THE DB/COLLECTION TO SEE IF USER EXISTS
     if (found) {
-      console.log('username already exists');
+      // console.log('username already exists');
       res.redirect('/login');
     } else {
-      console.log('username not found');
+      // console.log('username not found');
       bcrypt.hash(password, null, null,
         function (err, hashedPassword) {
           if (err) {
-            console.log('ERRORED:', err);
+            // console.log('ERRORED:', err);
             return;
           }
 
@@ -105,7 +105,7 @@ app.post('/signup', function (req, res) {
           });
         }
       );
-      res.render('index');
+      res.redirect('/');
     }
   });
 }); // app.post
@@ -115,21 +115,22 @@ app.get('/create', util.isUserLoggedIn, function (req, res) {
   res.render('index');
 }); // app.get
 
+
 // route: links
 app.get('/links', util.isUserLoggedIn, function (req, res) {
-  console.log('ARE WE GETTING LINKS???');
   Links.reset().fetch().then(function (links) {
     res.send(200, links.models);
   });
 }); // app.get
-app.post('/links', util.isUserLoggedIn, function (req, res) {
+
+app.post('/links', /*util.isUserLoggedIn,*/ function (req, res) {
   var uri = req.body.url;
 
-  console.log('DEBUGGGG', util.isValidUrl(uri));
+  // console.log('DEBUGGGG', util.isValidUrl(uri));
 
   if (!util.isValidUrl(uri)) {
-    console.log('Not a valid url: ', uri);
-    return res.send(404);
+    // console.log('Not a valid url: ', uri);
+    res.send(404);
   }
 
   new Link({ url: uri }).fetch().then(function(found) {
@@ -138,7 +139,7 @@ app.post('/links', util.isUserLoggedIn, function (req, res) {
     } else {
       util.getUrlTitle(uri, function(err, title) {
         if (err) {
-          console.log('Error reading URL heading: ', err);
+          // console.log('Error reading URL heading: ', err);
           return res.send(404);
         }
 
@@ -177,7 +178,6 @@ app.post('/links', util.isUserLoggedIn, function (req, res) {
 app.get('/*', function(req, res) {
   new Link({ code: req.params[0] }).fetch().then(function(link) {
     if (!link) {
-      // console.log('\nWE REDIRECTED!!!');
       res.redirect('/');
     } else {
       var click = new Click({
@@ -197,5 +197,5 @@ app.get('/*', function(req, res) {
   });
 });
 
-console.log('Shortly is listening on 4568');
+// console.log('Shortly is listening on 4568');
 app.listen(4568);

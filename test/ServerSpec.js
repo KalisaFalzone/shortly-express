@@ -63,10 +63,10 @@ describe('', function() {
 
     var requestWithSession = request.defaults({jar: true});
 
-    xbeforeEach(function (done) {      // create a user that we can then log-in
+    beforeEach(function (done) {      // create a user that we can then log-in
       new User({
           'username': 'Phillip',
-          'password': 'Phillip'
+          'password': '$2a$10$05G3G7oQ1UP.73fqZsk1DO1DVNe.aUBtFcz.jG8gXWtKyBohGMClG'
       }).save().then(function(){
         var options = {
           'method': 'POST',
@@ -237,7 +237,7 @@ describe('', function() {
 
   }); // 'Privileged Access'
 
-  xdescribe('Account Creation:', function(){
+  describe('Account Creation:', function(){
 
     it('Signup creates a user record', function (done) {
       var options = {
@@ -285,14 +285,14 @@ describe('', function() {
 
   }); // 'Account Creation'
 
-  xdescribe('Account Login:', function(){
+  describe('Account Login:', function(){
 
     var requestWithSession = request.defaults({jar: true});
 
     beforeEach(function (done) {
       new User({
           'username': 'Phillip',
-          'password': 'Phillip'
+          'password': '$2a$10$05G3G7oQ1UP.73fqZsk1DO1DVNe.aUBtFcz.jG8gXWtKyBohGMClG'
       }).save().then(function(){
         done()
       });
