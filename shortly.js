@@ -158,7 +158,11 @@ app.post('/links', /*util.isUserLoggedIn,*/ function (req, res) {
   });
 });
 
-
+app.get('/logout', function(req, res) {
+  req.session.destroy(function(){
+    res.redirect('login');
+  });
+});
 
 //create logout option that deletes session
 
