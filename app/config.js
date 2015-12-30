@@ -46,4 +46,23 @@ db.knex.schema.hasTable('clicks').then(function(exists) {
 /************************************************************/
 
 
+db.knex.schema.hasTable('users').then(function(exists) {
+  if (!exists) {
+    db.knex.schema.createTable('users', function (user) {
+      user.increments('user_id').primary();
+      user.string('username', 20);
+      user.string('password', 100);
+      user.string('session_id', 100);
+      user.timestamps();
+    }).then(function (table) {
+      console.log('Created Table, users', table);
+    });
+  }
+});
+
+//write a way to query the session id given the username and password?
+
+
+
+
 module.exports = db;
